@@ -19,7 +19,7 @@ const emptyForm = {
     status: true,
 };
 
-function ProductManager({ token }) {
+function ProductManager() {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [form, setForm] = useState(emptyForm);
@@ -31,8 +31,8 @@ function ProductManager({ token }) {
 
     async function loadProductData() {
         const [productResponse, categoryResponse] = await Promise.all([
-            getProducts(token),
-            getCategories(token)
+            getProducts(),
+            getCategories()
         ]);
 
         const categoryList = categoryResponse.data || [];
@@ -45,12 +45,9 @@ function ProductManager({ token }) {
         }));
     }
 
-    // load data when token avail
     useEffect(() => {
-        if (token) {
-            loadProductData();
-        }
-    }, [token]);
+        loadProductData();
+    }, []);
 
     // focus when edit mode
     useEffect(() => {
@@ -111,10 +108,10 @@ function ProductManager({ token }) {
             const productData = buildProductFormData();
 
             if (editingId) {
-                const response = await updateProduct(editingId, productData, token);
+                const response = await updateProduct(editingId, productData);
                 setMessage(response.message);
             } else {
-                const response = await createProduct(productData, token);
+                const response = await createProduct(productData);
                 setMessage(response.message);
             }
 
@@ -130,7 +127,7 @@ function ProductManager({ token }) {
     async function handleDelete(id) {
         setError('');
         setMessage('');
-        const response = await deleteProduct(id, token);
+        const response = await deleteProduct(id);
         setMessage(response.message);
         await loadProductData();
     }
@@ -251,7 +248,7 @@ function ProductManager({ token }) {
                             <div className="product-info">
                                 <div className="product-thumb">
                                     {product.image ? (
-                                        <img src={`http://127.0.0.1:8000/storage/${product.image}`} alt={product.name} />
+                                        <img src={`/storage/${product.image}`} alt={product.name} />
                                     ) : (
                                         <span>No image</span>
                                     )}

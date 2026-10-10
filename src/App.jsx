@@ -1,18 +1,36 @@
 import './App.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Login from './Login';
 import CategoryManager from './CategoryManager';
 import ProductManager from './ProductManager';
 import Dashboard from './Dashboard';
+import { ensureCsrfCookie, logout, me } from './api';
 
 function App() {
     const [user, setUser] = useState(null);
+    const [checkingSession, setCheckingSession] = useState(true);
     const [activeScreen, setActiveScreen] = useState('dashboard');
 
-    function handleLogout() {
-        localStorage.removeItem('access_token');
-        setActiveScreen('dashboard');
+    // The session cookie is the only credential, so ask the server who we are
+    // instead of trusting anything cached locally.
+    useEffect(() => {
+        ensureCsrfCookie()
+            .then(() => me())
+            .then((response) => setUser(response.data))
+            .catch(() => setUser(null))
+            .finally(() => setCheckingSession(false));
+    }, []);
+
+    async function handleLogout() {
+        // Clear the UI first so the screen changes even if the call fails.
         setUser(null);
+        setActiveScreen('dashboard');
+
+        await logout().catch(() => {});
+    }
+
+    if (checkingSession) {
+        return <main className="auth-page">Checking session...</main>;
     }
 
     if (!user) {
@@ -53,12 +71,11 @@ function App() {
             {/* // Main content */}
             <main className='main-content'>
                 {activeScreen === 'categories' ? (
-                    <CategoryManager token={localStorage.getItem('access_token')} />
+                    <CategoryManager />
                 ) : activeScreen === 'products' ? (
-                    <ProductManager token={localStorage.getItem('access_token')} />
+                    <ProductManager />
                 ) : (
                     <Dashboard
-                        token={localStorage.getItem('access_token')}
                         onOpenProducts={() => setActiveScreen('products')}
                         onLogout={handleLogout}
                     />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { login } from "./api";
+import { ensureCsrfCookie, login } from "./api";
 
 function Login({ onLogin }) {
     const [email, setEmail] = useState('');
@@ -14,8 +14,9 @@ function Login({ onLogin }) {
         setError('');
 
         try {
+            // the session + CSRF cookies must exist before the POST is accepted
+            await ensureCsrfCookie();
             const response = await login({ email, password });
-            localStorage.setItem('access_token', response.access_token);
             onLogin(response.user);
         } catch (error) {
             setError(error.message);
@@ -36,7 +37,7 @@ function Login({ onLogin }) {
                 </div>
 
                 <p className="muted">
-                    This form sends credentials to Laravel and stores the Sanctum token in React.
+                    This form sends credentials to Laravel, which starts a session stored in an httpOnly cookie.
                 </p>
 
                 <form className="login-form" onSubmit={handleLogin}>

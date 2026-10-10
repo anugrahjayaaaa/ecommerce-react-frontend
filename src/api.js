@@ -1,103 +1,117 @@
-const API_URL = 'http://127.0.0.1:8000/api/v1';
+// Same-origin: Vite proxies these paths to Laravel, so the session cookie
+// is never a cross-site cookie.
+const API_URL = '/api/v1';
 
-// api helper function (header, body)
+// Laravel encrypts the XSRF-TOKEN cookie and decrypts the X-XSRF-TOKEN header,
+// so the raw cookie value must be echoed back verbatim.
+function readCookie(name) {
+    const match = document.cookie.match(new RegExp(`(^|;\\s*)${name}=([^;]*)`));
+
+    return match ? decodeURIComponent(match[2]) : null;
+}
+
+// Establishes the session cookie and the XSRF-TOKEN cookie. Must resolve before
+// any state-changing request, otherwise Laravel rejects it with 419.
+export function ensureCsrfCookie() {
+    return fetch('/sanctum/csrf-cookie', { credentials: 'include' });
+}
+
 async function apiRequest(path, options = {}) {
-    // add token handle
-    const access_token = options.access_token;
-
-    //header
     const isFormData = options.body instanceof FormData;
+    const method = (options.method || 'GET').toUpperCase();
 
     const headers = {
         Accept: 'application/json',
-        ...(isFormData ? {} : {'Content-Type': 'application/json'}),
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         ...options.headers,
     };
 
-    if(access_token){
-        headers.Authorization = `Bearer ${access_token}`;
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+        const xsrfToken = readCookie('XSRF-TOKEN');
+
+        if (xsrfToken) {
+            headers['X-XSRF-TOKEN'] = xsrfToken;
+        }
     }
 
-    // response
     const response = await fetch(`${API_URL}${path}`, {
         ...options,
-        headers
+        headers,
+        credentials: 'include',
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
 
-    if(!response.ok){
+    if (!response.ok) {
         throw new Error(data.message || 'Request failed.');
     }
 
     return data;
 }
 
-export function login(credentials){
+export function me() {
+    return apiRequest('/me');
+}
+
+export function login(credentials) {
     return apiRequest('/login', {
         method: 'POST',
         body: JSON.stringify(credentials),
     });
 }
 
-// categories endpoint
-export function getCategories(access_token){
-    return apiRequest('/categories', {
-        access_token
-    });
+export function logout() {
+    return apiRequest('/logout', { method: 'POST' });
 }
 
-export function createCategory(category, access_token){
+// categories endpoint
+export function getCategories() {
+    return apiRequest('/categories');
+}
+
+export function createCategory(category) {
     return apiRequest('/categories', {
         method: 'POST',
-        access_token,
         body: JSON.stringify(category),
     });
 }
 
-export function updateCategory(id, category, access_token){
+export function updateCategory(id, category) {
     return apiRequest(`/categories/${id}`, {
         method: 'PUT',
-        access_token,
         body: JSON.stringify(category),
     });
 }
 
-export function deleteCategory(id, access_token){
+export function deleteCategory(id) {
     return apiRequest(`/categories/${id}`, {
         method: 'DELETE',
-        access_token,
     });
 }
 
 // products endpoint
-export function getProducts(access_token){
-    return apiRequest('/products', {
-        access_token
-    });
+export function getProducts() {
+    return apiRequest('/products');
 }
 
-export function createProduct(product, access_token){
+export function createProduct(product) {
     return apiRequest('/products', {
         method: 'POST',
-        access_token,
         body: product,
     });
 }
 
-export function updateProduct(id, product, access_token){
+export function updateProduct(id, product) {
     product.append('_method', 'PUT');
 
     return apiRequest(`/products/${id}`, {
         method: 'POST',
-        access_token,
         body: product,
     });
 }
 
-export function deleteProduct(id, access_token){
+export function deleteProduct(id) {
     return apiRequest(`/products/${id}`, {
         method: 'DELETE',
-        access_token,
     });
 }

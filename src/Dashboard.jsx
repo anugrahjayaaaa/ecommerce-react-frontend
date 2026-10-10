@@ -24,7 +24,7 @@ const emptySummary = {
     inventoryValue: 0,
 };
 
-function Dashboard({ token, onOpenProducts, onLogout }) {
+function Dashboard({ onOpenProducts, onLogout }) {
     const [summary, setSummary] = useState(emptySummary);
     const [recentProducts, setRecentProducts] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -36,8 +36,8 @@ function Dashboard({ token, onOpenProducts, onLogout }) {
 
         try {
             const [categoryResponse, productResponse] = await Promise.all([
-                getCategories(token),
-                getProducts(token),
+                getCategories(),
+                getProducts(),
             ]);
 
             const categories = categoryResponse.data || [];
@@ -64,10 +64,8 @@ function Dashboard({ token, onOpenProducts, onLogout }) {
     }
 
     useEffect(() => {
-        if (token) {
-            loadDashboard();
-        }
-    }, [token]);
+        loadDashboard();
+    }, []);
 
     const statCards = [
         { label: 'Categories', value: summary.categories, note: 'Product groups', Icon: Layers },

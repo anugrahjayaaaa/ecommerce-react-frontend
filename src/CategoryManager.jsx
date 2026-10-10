@@ -14,7 +14,7 @@ const emptyForm = {
     status: true,
 };
 
-function CategoryManager({ token }) {
+function CategoryManager() {
     const [categories, setCategories] = useState([]);
     const [form, setForm] = useState(emptyForm);
     const [editingId, setEditingId] = useState(null);
@@ -23,15 +23,13 @@ function CategoryManager({ token }) {
     const [message, setMessage] = useState('');
 
     async function loadCategories() {
-        const response = await getCategories(token);
+        const response = await getCategories();
         setCategories(response.data || []);
     }
 
     useEffect(() => {
-        if (token) {
-            loadCategories();
-        }
-    }, [token]);
+        loadCategories();
+    }, []);
 
     function resetForm() {
         setForm(emptyForm);
@@ -57,10 +55,10 @@ function CategoryManager({ token }) {
 
         try {
             if (editingId) {
-                const response = await updateCategory(editingId, form, token);
+                const response = await updateCategory(editingId, form);
                 setMessage(response.message);
             } else {
-                const response = await createCategory(form, token);
+                const response = await createCategory(form);
                 setMessage(response.message);
             }
 
@@ -74,7 +72,7 @@ function CategoryManager({ token }) {
     }
 
     async function handleDelete(id) {
-        const response = await deleteCategory(id, token);
+        const response = await deleteCategory(id);
         setMessage(response.message);
         await loadCategories();
     }
