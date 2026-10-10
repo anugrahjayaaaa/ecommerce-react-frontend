@@ -1,6 +1,19 @@
 import './App.css';
+import { useState } from 'react';
+import Login from  './Login';
 
 function App() {
+    const [user, setUser] = useState(null);
+
+    function handleLogout(){
+        localStorage.removeItem('access_token');
+        setUser(null);
+    }
+
+    if(!user){
+        return <Login onLogin={setUser}></Login>;
+    }
+
     return (
         <div className='admin-layout'>
             {/* // Side bar */}
@@ -27,7 +40,10 @@ function App() {
                         <p>Dashboard</p>
                         <h1>Ecommerce Admin</h1>
                     </div>
-                    <button>Add Product</button>
+                    <div className='header-actions'>
+                        <button type='button'> Add Product</button>
+                        <button type='button' className='secondary-button' onClick={handleLogout}>Logout</button>
+                    </div>
                 </header>
 
                 <section className='card-grid'>
