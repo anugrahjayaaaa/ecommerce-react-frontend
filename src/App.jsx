@@ -1,16 +1,19 @@
 import './App.css';
 import { useState } from 'react';
-import Login from  './Login';
+import Login from './Login';
+import CategoryManager from './CategoryManager';
 
 function App() {
     const [user, setUser] = useState(null);
+    const [activeScreen, setActiveScreen] = useState('dashboard');
 
-    function handleLogout(){
+    function handleLogout() {
         localStorage.removeItem('access_token');
+        setActiveScreen('dashboard');
         setUser(null);
     }
 
-    if(!user){
+    if (!user) {
         return <Login onLogin={setUser}></Login>;
     }
 
@@ -27,8 +30,16 @@ function App() {
                 </div>
 
                 <nav className='nav-list' aria-label="Admin navigation">
-                    <a className='nav-link active' href='#dashboard'>Dashboard</a>
-                    <a className='nav-link' href='#categories'>Categories</a>
+                    <button
+                        className={activeScreen === 'dashboard' ? 'nav-link active' : 'nav-link'}
+                        type="button"
+                        onClick={() => setActiveScreen('dashboard')}
+                    >Dashboard</button>
+                    <button
+                        className={activeScreen === 'categories' ? 'nav-link active' : 'nav-link'}
+                        type="button"
+                        onClick={() => setActiveScreen('categories')}
+                    >Categories</button>
                     <a className='nav-link' href='#products'>Products</a>
                 </nav>
             </aside>
@@ -46,21 +57,25 @@ function App() {
                     </div>
                 </header>
 
-                <section className='card-grid'>
-                    <article className='infor card'>
-                        <span>Total Categories</span>
-                        <strong>8</strong>
-                        <p>Manage product groups from here.</p>
-                    </article>
-                </section>
+                {activeScreen === 'dashboard' ? (
+                    <section className='card-grid'>
+                        <article className='info-card'>
+                            <span>Total Categories</span>
+                            <strong>8</strong>
+                            <p>Manage product groups from here.</p>
+                        </article>
 
-                <section className='card-grid'>
-                    <article className='infor card'>
-                        <span>Total Products</span>
-                        <strong>24</strong>
-                        <p>Products will come from Laravel API Later</p>
-                    </article>
-                </section>
+                        <article className='info-card'>
+                            <span>Total Products</span>
+                            <strong>24</strong>
+                            <p>Products will come from Laravel API Later</p>
+                        </article>
+                    </section>
+                ) : (
+                    <CategoryManager
+                        token={localStorage.getItem('access_token')}
+                    />
+                )}
             </main>
         </div>
     );
