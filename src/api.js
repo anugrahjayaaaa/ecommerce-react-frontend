@@ -6,9 +6,11 @@ async function apiRequest(path, options = {}) {
     const access_token = options.access_token;
 
     //header
+    const isFormData = options.body instanceof FormData;
+
     const headers = {
         Accept: 'application/json',
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : {'Content-Type': 'application/json'}),
         ...options.headers,
     };
 
@@ -63,6 +65,38 @@ export function updateCategory(id, category, access_token){
 
 export function deleteCategory(id, access_token){
     return apiRequest(`/categories/${id}`, {
+        method: 'DELETE',
+        access_token,
+    });
+}
+
+// products endpoint
+export function getProducts(access_token){
+    return apiRequest('/products', {
+        access_token
+    });
+}
+
+export function createProduct(product, access_token){
+    return apiRequest('/products', {
+        method: 'POST',
+        access_token,
+        body: product,
+    });
+}
+
+export function updateProduct(id, product, access_token){
+    product.append('_method', 'PUT');
+
+    return apiRequest(`/products/${id}`, {
+        method: 'POST',
+        access_token,
+        body: product,
+    });
+}
+
+export function deleteProduct(id, access_token){
+    return apiRequest(`/products/${id}`, {
         method: 'DELETE',
         access_token,
     });
