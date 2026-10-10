@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Login from './Login';
 import CategoryManager from './CategoryManager';
 import ProductManager from './ProductManager';
+import Dashboard from './Dashboard';
 
 function App() {
     const [user, setUser] = useState(null);
@@ -52,40 +53,15 @@ function App() {
             {/* // Main content */}
             <main className='main-content'>
                 {activeScreen === 'categories' ? (
-                    <CategoryManager
-                        token={localStorage.getItem('access_token')}
-                    />
+                    <CategoryManager token={localStorage.getItem('access_token')} />
                 ) : activeScreen === 'products' ? (
-                    <ProductManager
-                        token={localStorage.getItem('access_token')}
-                    />
+                    <ProductManager token={localStorage.getItem('access_token')} />
                 ) : (
-                    <>
-                        <header className='page-header'>
-                            <div>
-                                <p>Dashboard</p>
-                                <h1>Ecommerce Admin</h1>
-                            </div>
-                            <div className='header-actions'>
-                                <button type='button'> Add Product</button>
-                                <button type='button' className='secondary-button' onClick={handleLogout}>Logout</button>
-                            </div>
-                        </header>
-
-                        <section className='card-grid'>
-                            <article className='info-card'>
-                                <span>Total Categories</span>
-                                <strong>8</strong>
-                                <p>Manage product groups from here.</p>
-                            </article>
-
-                            <article className='info-card'>
-                                <span>Total Products</span>
-                                <strong>24</strong>
-                                <p>Products will come from Laravel API Later</p>
-                            </article>
-                        </section>
-                    </>
+                    <Dashboard
+                        token={localStorage.getItem('access_token')}
+                        onOpenProducts={() => setActiveScreen('products')}
+                        onLogout={handleLogout}
+                    />
                 )}
             </main>
         </div>
